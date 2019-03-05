@@ -59,20 +59,16 @@ public class zkExportToFS implements Job {
     }
 
     private void writeZnode(zNode znode) {
-        if (znode.data != null && znode.data.length > 0) {
-            String str = new String(znode.data);
-            if (!str.equals("null")) {
-                String outFile = znode.has_children ? "_znode" : znode.path;
-                try {
-                    FileOutputStream out = new FileOutputStream(outputDir + "\\" + outFile);
-                    out.write(znode.data);
-                    out.flush();
-                    out.close();
-                } catch (Exception e) {
-                    logger.error(e.getMessage());
-                }
+            String str = znode.data != null && znode.data.length > 0? new String(znode.data): "";
+            String outFile = znode.has_children ? "_znode" : znode.path;
+            try {
+                FileOutputStream out = new FileOutputStream(outputDir + "\\" + outFile);
+                out.write(str.getBytes());
+                out.flush();
+                out.close();
+            } catch (Exception e) {
+                logger.error(e.getMessage());
             }
-        }
     }
 
 }
