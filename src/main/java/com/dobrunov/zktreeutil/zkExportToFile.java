@@ -25,7 +25,7 @@ public class zkExportToFile implements Job {
     private String zkServer;
     private String output_file;
     private String start_znode;
-    private TreeNode<zNode> zktree;
+    private TreeNode<ZNode> zktree;
     private final org.slf4j.Logger logger;
 
 
@@ -51,17 +51,17 @@ public class zkExportToFile implements Job {
         Writer writer = null;
         try {
             writer = new FileWriter(output_file);
-            for (TreeNode<zNode> znode : zktree) {
-                writer.write("path=" + start_znode + znode.data.path);
-                if (znode.data.data != null && znode.data.data.length > 0) {
-                    String str = new String(znode.data.data);
+            for (TreeNode<ZNode> znode : zktree) {
+                writer.write("path=" + start_znode + znode.data.getPath());
+                if (znode.data.getPath()!= null && znode.data.getPath().length() > 0) {
+                    String str = new String(znode.data.getPath());
                     if (!str.equals("null")) {
                         writer.write("\t");
                         writer.write("val=" + str);
                     }
                 }
 
-                if (znode.data.stat.getEphemeralOwner() != 0) {
+                if (znode.data.getStat().getEphemeralOwner() != 0) {
                     writer.write("\t");
                     writer.write("type='ephemeral'");
                 }

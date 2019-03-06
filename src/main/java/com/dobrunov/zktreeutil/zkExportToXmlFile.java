@@ -19,18 +19,24 @@
 
 package com.dobrunov.zktreeutil;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.FileOutputStream;
-import javax.xml.parsers.*;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.*;
-import javax.xml.transform.stream.*;
-import org.w3c.dom.*;
 
 public class zkExportToXmlFile implements Job {
     private String zkServer;
     private String output_file;
     private String start_znode;
-    private TreeNode<zNode> zktree;
+    private TreeNode<ZNode> zktree;
     private final org.slf4j.Logger logger;
 
 
@@ -75,17 +81,17 @@ public class zkExportToXmlFile implements Job {
         logger.info("end write zookeeper tree to file " + output_file);
     }
 
-    private void fillXml(Document doc, Node root, TreeNode<zNode> zktree) {
-        for (TreeNode<zNode> znode : zktree.children) {
+    private void fillXml(Document doc, Node root, TreeNode<ZNode> zktree) {
+        for (TreeNode<ZNode> znode : zktree.children) {
             Element node = doc.createElement("zknode");
-            node.setAttribute("name", znode.data.name);
-            if (znode.data.data != null && znode.data.data.length > 0) {
-                String str = new String(znode.data.data);
+            node.setAttribute("name", znode.data.getName());
+            if (znode.data.getData() != null && znode.data.getData().length > 0) {
+                String str = new String(znode.data.getData());
                 if (!str.equals("null")) {
                     node.setAttribute("value", str);
                 }
             }
-            if (znode.data.stat.getEphemeralOwner() != 0) {
+            if (znode.data.getStat().getEphemeralOwner() != 0) {
                 node.setAttribute("ephemeral", "true");
             }
 

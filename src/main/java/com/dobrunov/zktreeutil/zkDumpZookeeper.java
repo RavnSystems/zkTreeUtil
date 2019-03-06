@@ -28,7 +28,7 @@ import java.util.List;
 public class zkDumpZookeeper implements Watcher {
     private String zkServer;
     private String start_znode;
-    private TreeNode<zNode> zktree = null;
+    private TreeNode<ZNode> zktree = null;
     private ZooKeeper zk = null;
     private final org.slf4j.Logger logger;
 
@@ -39,7 +39,7 @@ public class zkDumpZookeeper implements Watcher {
         this.start_znode = znode;
     }
 
-    public TreeNode<zNode> getZktree() throws Exception {
+    public TreeNode<ZNode> getZktree() throws Exception {
         connect();
         dump();
         disconnect();
@@ -84,14 +84,14 @@ public class zkDumpZookeeper implements Watcher {
         logger.info("end dump tree from zookeeper server");
     }
 
-    private void dumpChild(String znodeParent, String znode, TreeNode<zNode> tree_node) throws Exception {
+    private void dumpChild(String znodeParent, String znode, TreeNode<ZNode> tree_node) throws Exception {
         String znodePath = (znodeParent.equals("/") ? "" : znodeParent) + "/" + znode;
         List<String> children = zk.getChildren(znodePath, false);
 
         Stat stat = new Stat();
         byte[] data = zk.getData(znodePath, false, stat);
-        zNode z = new zNode(znode, znodePath, data, stat, !children.isEmpty());
-        TreeNode<zNode> tnode;
+        ZNode z = new ZNode(znode, znodePath, data, stat, !children.isEmpty());
+        TreeNode<ZNode> tnode;
         if (tree_node != null) {
             tnode = tree_node.addChild(z);
         } else {
