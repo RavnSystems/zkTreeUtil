@@ -40,8 +40,12 @@ public class ZNode {
         return name;
     }
 
+    public String validPath(){
+        return path.replaceAll("[:*?\"<>|]", "_");
+    }
+
     public String getPath() {
-        return path.startsWith("/")? path.substring(1): path;
+        return validPath().startsWith("/")? validPath().substring(1): validPath();
     }
 
     public byte[] getData() {
