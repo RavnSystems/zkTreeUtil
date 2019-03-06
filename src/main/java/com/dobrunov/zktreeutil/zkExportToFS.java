@@ -19,8 +19,13 @@
 
 package com.dobrunov.zktreeutil;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import org.apache.jute.OutputArchive;
+import org.apache.jute.SimpleXmlOutputArchive;
+import org.apache.zookeeper.data.Stat;
+
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Export zookeeper tree to file system
@@ -28,12 +33,12 @@ import java.io.FileOutputStream;
 public class zkExportToFS implements Job {
 
     private String zkServer;
-    private String outputDir;
+    private final Path outputDir;
     private String start_znode;
     private final org.slf4j.Logger logger;
 
 
-    public zkExportToFS(String zkServer, String znode, String outputDir) {
+    public zkExportToFS(String zkServer, String znode, Path outputDir) {
         logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
         this.zkServer = zkServer;
         this.outputDir = outputDir;
@@ -43,14 +48,15 @@ public class zkExportToFS implements Job {
     public void go() {
         zkDumpZookeeper dump = new zkDumpZookeeper(zkServer, start_znode);
         try {
-            TreeNode<zNode> zktree = dump.getZktree();
+            TreeNode<ZNode> zktree = dump.getZktree();
             logger.info("begin write zookeeper tree to folder " + outputDir);
-            for (TreeNode<zNode> znode : zktree) {
-                if (znode.data.has_children) {
-                    File f = new File(outputDir + znode.data.path);
-                    boolean s = f.mkdirs();
+            for (TreeNode<ZNode> znode : zktree) {
+                if (znode.data.hasChildren()) {
+                    final Path nodePath = outputDir.resolve(znode.data.getPath());
+                    Files.createDirectories(nodePath);
                 }
                 writeZnode(znode.data);
+                if(znode.data.getStat().getEphemeralOwner()>0) writeMetadata(znode.data);
             }
             logger.info("end write zookeeper tree to folder " + outputDir);
         } catch (Exception e) {
@@ -58,17 +64,25 @@ public class zkExportToFS implements Job {
         }
     }
 
-    private void writeZnode(zNode znode) {
-            String str = znode.data != null && znode.data.length > 0? new String(znode.data): "";
-            String outFile = znode.has_children ? "_znode" : znode.path;
-            try {
-                FileOutputStream out = new FileOutputStream(outputDir + "\\" + outFile);
-                out.write(str.getBytes());
-                out.flush();
-                out.close();
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
+    private void writeZnode(ZNode znode) {
+        final String str = znode.readData();
+        final String outFile = znode.hasChildren() ? "_znode" : znode.getPath();
+        try{
+            Files.write(outputDir.resolve(outFile), str.getBytes());
+        } catch (Exception e) {
+            logger.error("Unable to write zookeeper node", e);
+        }
+    }
+
+    private void writeMetadata(ZNode zNode){
+        final Stat metadata = zNode.getStat();
+        final String outFile = zNode.getPath().concat(".metadata.xml");
+        try(final OutputStream outputStream = Files.newOutputStream(outputDir.resolve(outFile))){
+            final OutputArchive outputArchive = new SimpleXmlOutputArchive(outputStream);
+            metadata.serialize(outputArchive, "metadata");
+        } catch (Exception e){
+            logger.error("Unable to write medata node", e);
+        }
     }
 
 }

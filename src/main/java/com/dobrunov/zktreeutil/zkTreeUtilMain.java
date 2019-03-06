@@ -21,6 +21,9 @@ package com.dobrunov.zktreeutil;
 
 import org.apache.commons.cli.*;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class zkTreeUtilMain {
     final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(zkTreeUtilMain.class);
 
@@ -53,7 +56,8 @@ public class zkTreeUtilMain {
 
             if (cmd.hasOption("e") && cmd.hasOption("od")) {
                 String output_dir = cmd.getOptionValue("od");
-                job = new zkExportToFS(server, znode, output_dir);
+                final Path outputPath = Paths.get(output_dir);
+                job = new zkExportToFS(server, znode, outputPath);
             } else if (cmd.hasOption("e") && cmd.hasOption("of")) {
                 String output_file = cmd.getOptionValue("of");
                 job = new zkExportToFile(server, znode, output_file);
